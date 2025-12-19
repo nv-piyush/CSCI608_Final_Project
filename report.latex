@@ -1,0 +1,167 @@
+\documentclass[11pt]{article}
+
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{setspace}
+
+\geometry{margin=1in}
+\onehalfspacing
+
+\title{Factors Influencing Used-Car Prices in the United States}
+\author{Piyush Jadhav}
+\date{CSCI/MATH 608 \\ Final Project (Option A)}
+
+\begin{document}
+\maketitle
+
+\section{Introduction and Problem Formulation}
+
+The used-car market represents a complex pricing environment in which vehicle value is shaped by a combination of mechanical, economic, and consumer-driven factors. Unlike new cars, used vehicles vary substantially in mileage, age, condition, and perceived brand reliability, leading to wide price dispersion even among similar models.
+
+The goal of this project is to systematically examine which factors are most strongly associated with used-car prices and to demonstrate the full data science lifecycle, including data cleaning, exploratory visualization, predictive modeling, and statistical inference. A large dataset of online vehicle listings is used to answer four distinct but related research questions.
+
+\subsection{Research Questions}
+
+This analysis addresses the following questions:
+
+\begin{enumerate}
+    \item \textbf{Descriptive Question:} What is the average used-car price overall, and how does the average price vary across manufacturers?
+    \item \textbf{Exploratory Question:} How is vehicle mileage related to price, and does this relationship differ across vehicle types such as sedans, SUVs, and trucks?
+    \item \textbf{Predictive Question:} Can a used car’s price be predicted using observable attributes such as mileage, age, manufacturer, condition, and vehicle type?
+    \item \textbf{Inferential Question:} What is the 95\% bootstrap confidence interval for the difference in mean price between Toyota and Honda vehicles?
+\end{enumerate}
+
+Each question corresponds to a different stage of analysis and collectively provides a comprehensive view of used-car pricing dynamics.
+
+\section{Data Collection}
+
+The data used in this project come from the \textit{Craigslist Cars \& Trucks} dataset available on Kaggle. The dataset contains hundreds of thousands of used-vehicle listings collected from Craigslist postings across the United States. Each listing includes information such as asking price, odometer reading, vehicle manufacturer, condition, body type, and model year.
+
+This dataset is well-suited for the analysis because it is large, diverse, and contains the key variables needed to support descriptive summaries, exploratory relationship analysis, predictive modeling, and inferential comparisons between manufacturers.
+
+\section{Data Preparation}
+
+\subsection{Cleaning and Filtering}
+
+The raw dataset contains incomplete entries and implausible values that must be addressed prior to analysis. The following data preparation steps were applied:
+
+\begin{itemize}
+    \item Listings with missing values for price, odometer, year, manufacturer, condition, or vehicle type were removed.
+    \item Listings with prices below \$500 or above \$200{,}000 were excluded to remove unrealistic or erroneous values.
+    \item Vehicles with odometer readings below 1{,}000 miles or above 400{,}000 miles were removed.
+    \item Vehicles with model years earlier than 1980 or later than 2025 were excluded.
+\end{itemize}
+
+These steps ensured that the resulting dataset reflects realistic used-car listings while retaining a large sample size.
+
+\subsection{Feature Engineering}
+
+A new variable, \texttt{age}, was created to represent vehicle age:
+\[
+\text{age} = 2025 - \text{year}.
+\]
+
+Additionally, because used-car prices are highly right-skewed, the natural logarithm of price (\texttt{log\_price}) was computed. This transformation improves numerical stability and makes linear modeling assumptions more reasonable.
+
+After cleaning and feature engineering, the final dataset contained \textbf{197{,}706 observations} and \textbf{8 variables}.
+
+\section{Descriptive Analysis}
+
+\subsection{Overall Price Characteristics}
+
+Across all vehicles in the cleaned dataset, the mean used-car price is \$18{,}820.91, while the median price is \$16{,}495.00. The mean exceeding the median indicates a right-skewed distribution, driven by a smaller number of high-priced vehicles such as luxury cars and newer trucks.
+
+Figure~\ref{fig:pricedist} illustrates the full distribution of prices and confirms the presence of a long right tail.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{price_distribution.png}
+\caption{Distribution of used-car prices showing strong right skew.}
+\label{fig:pricedist}
+\end{figure}
+
+\subsection{Mean Price by Manufacturer}
+
+Figure~\ref{fig:manufacturer} shows the mean used-car price for the most frequently occurring manufacturers in the dataset.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{figure1_manufacturer_mean.png}
+\caption{Mean used-car price by manufacturer (top manufacturers by count).}
+\label{fig:manufacturer}
+\end{figure}
+
+Luxury and performance-oriented manufacturers such as Audi and BMW exhibit higher average prices, while manufacturers known for affordability, such as Honda and Hyundai, have lower average prices. This descriptive analysis answers the first research question by summarizing how typical prices differ across manufacturers.
+
+\section{Exploratory Analysis}
+
+To explore the relationship between vehicle usage and price, Figure~\ref{fig:mileage} plots odometer readings against prices, colored by vehicle type.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{figure2_mileage_price.png}
+\caption{Relationship between mileage and price across vehicle types.}
+\label{fig:mileage}
+\end{figure}
+
+A strong negative relationship between mileage and price is evident: vehicles with higher mileage tend to sell for lower prices. This pattern is consistent across vehicle types, although trucks and pickups appear to retain higher prices at comparable mileages relative to sedans. This exploratory analysis reveals both general trends and meaningful differences across vehicle categories.
+
+\section{Predictive Analysis}
+
+\subsection{Model Selection and Justification}
+
+To predict vehicle price, a linear regression model was fit using the logarithm of price as the response variable. Predictor variables included odometer reading, vehicle age, manufacturer, vehicle condition, and vehicle type. Linear regression was selected due to its interpretability and its ability to quantify the marginal effects of each predictor.
+
+Categorical variables were encoded using one-hot encoding. All coefficient interpretations are relative to baseline categories omitted during encoding.
+
+\subsection{Model Training and Evaluation}
+
+The dataset was split into training (80\%) and testing (20\%) subsets. Model performance on the test set was evaluated using root mean squared error (RMSE), mean absolute error (MAE), and the coefficient of determination ($R^2$).
+
+\begin{itemize}
+    \item RMSE: \$9{,}718.75
+    \item MAE: \$6{,}286.04
+    \item $R^2$ (log scale): 0.3375
+\end{itemize}
+
+These metrics indicate that the model captures a substantial portion of price variability given the limited set of observable features.
+
+\subsection{Interpretation of Results}
+
+Both mileage and vehicle age exhibit negative effects on price, reflecting depreciation over time and usage. Better vehicle condition is associated with higher expected prices, while manufacturer and vehicle type capture systematic brand and market-segment differences. Overall, the model provides a reasonable predictive framework and successfully answers the predictive research question.
+
+\section{Inferential Analysis}
+
+\subsection{Bootstrap Procedure}
+
+To assess uncertainty in manufacturer price differences, a nonparametric bootstrap was used to estimate the difference in mean price between Toyota and Honda vehicles. The sample included 16{,}581 Toyota listings and 10{,}480 Honda listings. For each of 10{,}000 bootstrap iterations, prices were resampled with replacement and the mean difference was computed.
+
+\subsection{Results and Interpretation}
+
+The estimated mean price difference (Toyota minus Honda) is \$5{,}344.73. The 95\% bootstrap confidence interval is:
+\[
+[\$5{,}097.33,\; \$5{,}586.34].
+\]
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{figure3_bootstrap.png}
+\caption{Bootstrap distribution of the mean price difference between Toyota and Honda vehicles.}
+\label{fig:bootstrap}
+\end{figure}
+
+Because the confidence interval does not include zero, there is strong statistical evidence that Toyota vehicles have a higher mean price than Honda vehicles in this dataset. This answers the inferential research question by quantifying uncertainty around the estimated difference.
+
+\section{Problem Reformulation and Future Work}
+
+Future work could extend this analysis by incorporating additional vehicle characteristics such as trim level, engine size, accident history, and geographic location. More flexible predictive models, including tree-based or additive models, may improve accuracy. Inferential analyses could also be expanded to examine median price differences or to stratify comparisons by vehicle type.
+
+\section{Version Control}
+
+All project work was tracked using Git. The repository contains more than ten commits documenting data cleaning, exploratory analysis, modeling, inference, and report preparation.
+
+\end{document}
